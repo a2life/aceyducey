@@ -82,7 +82,7 @@ document.addEventListener('click', (e) => {
         e.preventDefault();
         hideElement(continueOrQuitElementId);
         document.getElementById('gameResult')!.innerHTML = "";
-        cardDealing();
+        dealTwoCards();
     } else
         return
 })
@@ -95,7 +95,7 @@ betEntry!.addEventListener('change',(e)=>{
 
 })
 
-const cardDealing = () => {
+const dealTwoCards = () => {
     cardOne = drawCard();
     cardTwo = drawCard();
 // show cards drawn
@@ -150,5 +150,5 @@ const askPlayorQuite=()=>{
     document.getElementById(moneyOneHandElementId)!.innerHTML=`You now have $${moneyOnHand}`
 }
 //initial card dealing. repeat will be through 'play again?' button => click event
-cardDealing()
+dealTwoCards()
 
