@@ -1,16 +1,12 @@
 import './style.css'
-import drawCard from "./component/drawcard";
+import {drawACard, playCard, showCard} from "./component/playCards";
 import messageBody from "./component/explanation";
-import inbetween from './component/inbetween';
-import {showElement,hideElement} from "./component/showhide";
+import numberIsInBetween from './component/inbetween';
+import {setText, hideElement, showElement} from "./component/utility";
 
-interface PlayCard {
-    face: string;
-    value: number;
-}
 
-let cardOne = {} as PlayCard;
-let cardTwo = {} as PlayCard;
+let cardOne = {} as playCard;
+let cardTwo = {} as playCard;
 let aceValue = 1;
 let moneyOnHand: number = 100;
 
@@ -22,16 +18,24 @@ const betNoBetElementId = 'betNoBet';
 const betElementId = 'bet';
 const noBetElementId = 'noBet';
 const betAmountElementId = 'betAmount';
-const continueOrQuitElementId='continueOrQuit';
-const playAgainElementId='playAgain';
-const moneyOneHandElementId='moneyOnHand';
+const continueOrQuitElementId = 'continueOrQuit';
+const playAgainElementId = 'playAgain';
+const moneyOneHandElementId = 'moneyOnHand';
+const gameResultElementId = 'gameResult';
+const betDivElementId = 'betDiv';
+const backOfCard:playCard={png:"gray_back",face:'',value:0};
 
 app.innerHTML = `
   <h1>Acey Ducey</h1>
   <p id="gameRule">
   ${messageBody}
 </p>
- <div id="showCardDrawn">
+<div id="cardTable">
+<img id="cardOnePng"  src="" style="width:128px;" alt="card holder" />
+<img id="cardTwoPng"  src="" style="width:128px;" alt="second card holder"/>
+<img id="cardThreePng"  src="" style="width:128px;" alt="third card holder"/>
+</div>
+<div id="showCardDrawn">
   
 </div>
 <div id="${hiAceLoAceElementId}" style="display:none">
@@ -41,20 +45,24 @@ You have a choice for Ace,  would you like Hi Ace value of 14 or Low Ace value o
 <div id="${betNoBetElementId}" style="display:none">
 <button id="${betElementId}">Bet</button><button id="${noBetElementId}">No Bet</button>
 </div>
-<div id="betDiv" style="display:none">
+<div id="${betDivElementId}" style="display:none">
 Enter bet amount 
 <input id="${betAmountElementId}" />
 </div>
   <p id="gameResult"></p>
-  <div id="continueOrQuit" style="display:none"><button id="playAgain" >Play Again?</button></div>
+  <div id="continueOrQuit" ><button id="playAgain" >Play ?</button></div>
   <p id="${moneyOneHandElementId}">
 You have now $${moneyOnHand}.
 </p>
 `;
+const betEntry = document.querySelector(`#${betAmountElementId}`);
+showCard(drawACard(), 'cardOnePng')
+showCard(drawACard(), 'cardTwoPng')
+showCard(drawACard(), 'cardThreePng')
 
 document.addEventListener('click', (e) => {
 
-    if ((e.target as HTMLTextAreaElement)!.matches('#hiAce')) {
+    if ((e.target as HTMLTextAreaElement)!.matches(`#${hiAceElementId}`)) {
         e.preventDefault();
         aceValue = 14;
         hideElement(hiAceLoAceElementId);
@@ -69,9 +77,10 @@ document.addEventListener('click', (e) => {
         showElement(betNoBetElementId);
     } else if ((e.target as HTMLTextAreaElement)!.matches(`#${betElementId}`)) {
         e.preventDefault();
-        (<HTMLInputElement>document.getElementById(betAmountElementId))!.value=""
+        (<HTMLInputElement>document.getElementById(betAmountElementId))!.value = ""
         showElement('betDiv');
         hideElement(betNoBetElementId);
+        (<HTMLTextAreaElement>betEntry!).focus();
 
     } else if ((e.target as HTMLTextAreaElement)!.matches(`#${noBetElementId}`)) {
         e.preventDefault();
@@ -81,32 +90,41 @@ document.addEventListener('click', (e) => {
     } else if ((e.target as HTMLTextAreaElement)!.matches(`#${playAgainElementId}`)) {
         e.preventDefault();
         hideElement(continueOrQuitElementId);
+
         document.getElementById('gameResult')!.innerHTML = "";
         dealTwoCards();
     } else
         return
 })
 
-const betEntry = document.querySelector(`#${betAmountElementId}`);
-betEntry!.addEventListener('change',(e)=>{
-    const betAmount = (<HTMLInputElement>e.target)!.value
-    play(cardOne,cardTwo,parseInt(betAmount))
-    hideElement('betDiv');
 
+betEntry!.addEventListener('change', (e) => {
+    const betAmount = parseInt((<HTMLInputElement>e.target)!.value);
+    if (betAmount <= moneyOnHand) {
+        play(cardOne, cardTwo, betAmount)
+        hideElement('betDiv');
+    } else window.alert("You are betting more than you have.  Reduce you bet! ")
 })
 
+
 const dealTwoCards = () => {
-    cardOne = drawCard();
-    cardTwo = drawCard();
+    cardOne = drawACard();
+    cardTwo = drawACard();
+    while (cardOne === cardTwo) cardTwo = drawACard();  // avoid showing duplicate
+    showCard(cardOne,"cardOnePng");
+    showCard(cardTwo,'cardTwoPng');
+    showCard(backOfCard, 'cardThreePng');
+
 // show cards drawn
-    document.getElementById('showCardDrawn')!.innerHTML = `we have ${cardOne.face} and ${cardTwo.face}`;
+
+    setText('showCardDrawn', `we have ${cardOne.face} and ${cardTwo.face}`)
 // if two cards are both Ace,
     if ((cardOne.value === 1) && (cardTwo.value === 1)) {
         //console log player win
         // then declare win and double the moneyOn hand
-        document.getElementById('#gameResult')!.innerHTML = 'You won big!';
-        moneyOnHand=moneyOnHand*2;
-        askPlayorQuite();
+        document.getElementById(gameResultElementId)!.innerHTML = 'You won big!';
+        moneyOnHand = moneyOnHand * 2;
+        askPlayAgain();
     }
 
 // else if either card is Ace,
@@ -122,8 +140,11 @@ const dealTwoCards = () => {
     }
 
 }
-const play = (cardOne: PlayCard, cardTwo: PlayCard, betAmount:number) => {
-    const cardThree: PlayCard = drawCard();
+const play = (cardOne: playCard, cardTwo: playCard, betAmount: number) => {
+    let cardThree: playCard = drawACard();
+    while (cardOne === cardThree || cardTwo === cardThree) cardThree = drawACard();
+    (<HTMLImageElement>document.getElementById('cardThreePng')).src = `/assets/img/PNG/${cardThree.png}.png`;
+
     if (cardOne.value === 1) {
         cardOne.value = aceValue
     }
@@ -133,22 +154,22 @@ const play = (cardOne: PlayCard, cardTwo: PlayCard, betAmount:number) => {
     if (cardThree.value === 1) {
         cardThree.value = aceValue
     }
-    if (inbetween(cardOne.value, cardTwo.value, cardThree.value)){
-        moneyOnHand=moneyOnHand+betAmount;
-    } else { moneyOnHand=moneyOnHand-betAmount}
-    const winlose = inbetween(cardOne.value, cardTwo.value, cardThree.value) ? 'You win!' : 'You lose!';
-    document.querySelector('#gameResult')!.innerHTML = `you draw ${cardThree.face}, ${winlose}`;
-    askPlayorQuite();
+    if (numberIsInBetween(cardOne.value, cardTwo.value, cardThree.value)) {
+        moneyOnHand = moneyOnHand + betAmount;
+    } else {
+        moneyOnHand = moneyOnHand - betAmount
+    }
+    const winLose = numberIsInBetween(cardOne.value, cardTwo.value, cardThree.value) ? 'You win!' : 'You lose!';
+    setText(gameResultElementId, `you draw ${cardThree.face}, ${winLose}`)
+    askPlayAgain();
 }
 const chicken = () => {
-    document.querySelector('#gameResult')!.innerHTML = 'Chicken!';
+    setText(gameResultElementId, 'Chicken!');
     showElement(continueOrQuitElementId)
 }
 
-const askPlayorQuite=()=>{
+const askPlayAgain = () => {
+    setText(moneyOneHandElementId, `You now have $${moneyOnHand}`);
     showElement(continueOrQuitElementId);
-    document.getElementById(moneyOneHandElementId)!.innerHTML=`You now have $${moneyOnHand}`
 }
-//initial card dealing. repeat will be through 'play again?' button => click event
-dealTwoCards()
 
