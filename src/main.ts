@@ -30,7 +30,7 @@ app.innerHTML = `
   <p id="gameRule">
   ${messageBody}
 </p>
-<div id="cardTable">
+<div id="cardTable" class="container-sm alert alert-success" role="alert">
 <img id="cardOnePng"  src="" style="width:128px;" alt="card holder" />
 <img id="cardTwoPng"  src="" style="width:128px;" alt="second card holder"/>
 <img id="cardThreePng"  src="" style="width:128px;" alt="third card holder"/>
@@ -40,17 +40,17 @@ app.innerHTML = `
 </div>
 <div id="${hiAceLoAceElementId}" style="display:none">
 You have a choice for Ace,  would you like Hi Ace value of 14 or Low Ace value of 1 ?
-<button id="${hiAceElementId}">Hi Ace</button><button id="${loAceElementId}">Lo Ace</button>
+<button id="${hiAceElementId}" class="btn btn-primary">Hi Ace</button><button id="${loAceElementId}" type="button" class="btn btn-primary">Lo Ace</button>
 </div>
 <div id="${betNoBetElementId}" style="display:none">
-<button id="${betElementId}">Bet</button><button id="${noBetElementId}">No Bet</button>
+<button type="button" id="${betElementId}" class="btn btn-primary">Bet</button><button id="${noBetElementId}" type="button" class="btn btn-secondary">No Bet</button>
 </div>
 <div id="${betDivElementId}" style="display:none">
 Enter bet amount 
 <input id="${betAmountElementId}" />
 </div>
   <p id="gameResult"></p>
-  <div id="continueOrQuit" ><button id="playAgain" >Play ?</button></div>
+  <div id="continueOrQuit" ><button type="button" class="btn btn-primary"id="playAgain" >Play ?</button></div>
   <p id="${moneyOneHandElementId}">
 You have now $${moneyOnHand}.
 </p>
