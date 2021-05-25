@@ -1,14 +1,17 @@
 import './style.css'
-import {drawACard, playCard, showCard} from "./component/playCards";
+// import { } from "./component/playCards";
 import messageBody from "./component/explanation";
 import numberIsInBetween from './component/inbetween';
 import {setText, hideElement, showElement} from "./component/utility";
+import {CardDeck, IPlayCard, showCard} from "./component/cardSet";
 
 
-let cardOne = {} as playCard;
-let cardTwo = {} as playCard;
+let cardOne = {} as IPlayCard;
+let cardTwo = {} as IPlayCard;
 let aceValue = 1;
 let moneyOnHand: number = 100;
+
+const cardDeck = new CardDeck();
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 const hiAceLoAceElementId = 'hiAceLoAce';
@@ -23,7 +26,9 @@ const playAgainElementId = 'playAgain';
 const moneyOneHandElementId = 'moneyOnHand';
 const gameResultElementId = 'gameResult';
 const betDivElementId = 'betDiv';
-const backOfCard:playCard={png:"gray_back",face:'',value:0};
+const backOfCard:IPlayCard={png:"gray_back",face:'',value:0};
+
+
 
 app.innerHTML = `
   <h1>Acey Ducey</h1>
@@ -50,15 +55,15 @@ Enter bet amount
 <input id="${betAmountElementId}" />
 </div>
   <p id="gameResult"></p>
-  <div id="continueOrQuit" ><button type="button" class="btn btn-primary"id="playAgain" >Play ?</button></div>
+  <div id="continueOrQuit" ><button type="button" class="btn btn-primary" id="playAgain" >Play ?</button></div>
   <p id="${moneyOneHandElementId}">
 You have now $${moneyOnHand}.
 </p>
 `;
 const betEntry = document.querySelector(`#${betAmountElementId}`);
-showCard(drawACard(), 'cardOnePng')
-showCard(drawACard(), 'cardTwoPng')
-showCard(drawACard(), 'cardThreePng')
+showCard(cardDeck.next(), 'cardOnePng')
+showCard(cardDeck.next(), 'cardTwoPng')
+showCard(cardDeck.next(), 'cardThreePng')
 
 document.addEventListener('click', (e) => {
 
@@ -108,9 +113,8 @@ betEntry!.addEventListener('change', (e) => {
 
 
 const dealTwoCards = () => {
-    cardOne = drawACard();
-    cardTwo = drawACard();
-    while (cardOne === cardTwo) cardTwo = drawACard();  // avoid showing duplicate
+    cardOne = cardDeck.next()
+    cardTwo = cardDeck.next();
     showCard(cardOne,"cardOnePng");
     showCard(cardTwo,'cardTwoPng');
     showCard(backOfCard, 'cardThreePng');
@@ -140,9 +144,8 @@ const dealTwoCards = () => {
     }
 
 }
-const play = (cardOne: playCard, cardTwo: playCard, betAmount: number) => {
-    let cardThree: playCard = drawACard();
-    while (cardOne === cardThree || cardTwo === cardThree) cardThree = drawACard();
+const play = (cardOne: IPlayCard, cardTwo: IPlayCard, betAmount: number) => {
+    let cardThree: IPlayCard = cardDeck.next();
     (<HTMLImageElement>document.getElementById('cardThreePng')).src = `/assets/img/PNG/${cardThree.png}.png`;
 
     if (cardOne.value === 1) {
